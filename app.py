@@ -1,3 +1,5 @@
+server = app.server
+
 import pandas as pd
 
 # Step 1: Scrape tables from Wikipedia
@@ -109,6 +111,5 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
-server = app.server
 
 
