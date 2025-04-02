@@ -3,12 +3,16 @@ from dash import dcc, html, Input, Output
 import pandas as pd
 import plotly.express as px
 
-# Load the dataset
+# Load dataset
 df = pd.read_csv("fifa_world_cup_finals.csv")
 
-# Clean data just in case
-df['Winner'] = df['Winner'].replace({'West Germany': 'Germany'})
-df['RunnerUp'] = df['RunnerUp'].replace({'West Germany': 'Germany'})
+# Clean column names: remove whitespace/hyphens and standardize
+df = df.rename(columns=lambda x: x.strip().replace(" ", "").replace("-", ""))
+df = df.rename(columns={"Winners": "Winner", "Runnersup": "RunnerUp"})
+
+# Standardize country names
+df['Winner'] = df['Winner'].replace({'WestGermany': 'Germany'})
+df['RunnerUp'] = df['RunnerUp'].replace({'WestGermany': 'Germany'})
 
 # Calculate win counts
 win_counts = df['Winner'].value_counts().reset_index()
@@ -16,19 +20,22 @@ win_counts.columns = ['Country', 'Wins']
 
 # Initialize Dash app
 app = dash.Dash(__name__)
-server = app.server  # Needed for Render
+server = app.server  # Required for deployment on Render
 
 # Layout
 app.layout = html.Div([
-    html.H1("FIFA World Cup Dashboard"),
+    html.H1("FIFA World Cup Dashboard", style={'textAlign': 'center'}),
 
     html.H3("World Cup Winners Choropleth Map"),
     dcc.Graph(id='choropleth',
-              figure=px.choropleth(win_counts,
-                                   locations="Country",
-                                   locationmode="country names",
-                                   color="Wins",
-                                   title="FIFA World Cup Wins by Country")),
+              figure=px.choropleth(
+                  win_counts,
+                  locations="Country",
+                  locationmode="country names",
+                  color="Wins",
+                  color_continuous_scale="Viridis",
+                  title="FIFA World Cup Wins by Country"
+              )),
 
     html.Br(),
 
@@ -51,7 +58,7 @@ app.layout = html.Div([
     html.Div(id='year-output')
 ])
 
-# Callbacks
+# Callback for country selection
 @app.callback(
     Output('country-output', 'children'),
     Input('country-dropdown', 'value')
@@ -62,6 +69,7 @@ def update_country_info(country):
     wins = win_counts[win_counts['Country'] == country]['Wins'].values[0]
     return f"{country} has won the FIFA World Cup {wins} times."
 
+# Callback for year selection
 @app.callback(
     Output('year-output', 'children'),
     Input('year-dropdown', 'value')
@@ -76,9 +84,6 @@ def update_year_info(year):
     runner = row['RunnerUp'].values[0]
     return f"In {year}, {winner} won the World Cup, and {runner} was the runner-up."
 
-# This line ensures the app is callable by gunicorn
-app = app.server if __name__ != '__main__' else app
-
-# Run locally (Render ignores this)
+# Run locally (ignored on Render)
 if __name__ == '__main__':
     app.run(debug=True)
