@@ -1,55 +1,18 @@
-app = dash.Dash(__name__)
-server = app.server
-
-import pandas as pd
-
-# Step 1: Scrape tables from Wikipedia
-url = "https://en.wikipedia.org/wiki/List_of_FIFA_World_Cup_finals"
-tables = pd.read_html(url)
-
-# Step 2: Select the correct table (Table 3)
-df = tables[3]
-
-# Step 3: Clean column names safely
-df = df.rename(columns=lambda col: str(col).strip())
-
-# Step 4: Keep only the necessary columns
-df = df[['Year', 'Winners', 'Runners-up']]
-df.columns = ['Year', 'Winner', 'RunnerUp']
-
-# Step 5: Filter numeric years only
-df = df[df['Year'].astype(str).str.isnumeric()]
-df['Year'] = df['Year'].astype(int)
-
-# Step 6: Merge West Germany and Germany
-df['Winner'] = df['Winner'].replace({'West Germany': 'Germany'})
-df['RunnerUp'] = df['RunnerUp'].replace({'West Germany': 'Germany'})
-
-# Optional: Save to CSV
-df.to_csv('fifa_world_cup_finals.csv', index=False)
-
-# Preview the result
-print(df.head())
-
-
-
 import dash
 from dash import dcc, html, Input, Output
 import pandas as pd
 import plotly.express as px
 
-# Load the dataset
+# Load the dataset (already pre-processed and saved locally)
 df = pd.read_csv('fifa_world_cup_finals.csv')
 
 # Calculate win counts
 win_counts = df['Winner'].value_counts().reset_index()
 win_counts.columns = ['Country', 'Wins']
 
-# Merge Germany & West Germany already handled
-
 # Initialize Dash app
 app = dash.Dash(__name__)
-server = app.server  # required for Render deployment
+server = app.server  # Required for deployment
 
 # Layout
 app.layout = html.Div([
@@ -109,7 +72,3 @@ def update_year_info(year):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-
-
