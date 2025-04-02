@@ -2,13 +2,17 @@ import dash
 from dash import dcc, html, Input, Output
 import pandas as pd
 import plotly.express as px
+import os
 
 # Load dataset
-df = pd.read_csv("fifa_world_cup_finals.csv")
+try:
+    df = pd.read_csv("fifa_world_cup_finals.csv")
+except Exception as e:
+    raise RuntimeError(f"Failed to load CSV file: {e}")
 
 # Clean column names: remove whitespace/hyphens and standardize
 df = df.rename(columns=lambda x: x.strip().replace(" ", "").replace("-", ""))
-df = df.rename(columns={"Winners": "Winner", "Runnersup": "RunnerUp"})
+df = df.rename(columns={"Winner": "Winner", "Runnerup": "RunnerUp"})  # fixed typo here
 
 # Standardize country names
 df['Winner'] = df['Winner'].replace({'WestGermany': 'Germany'})
