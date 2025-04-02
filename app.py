@@ -30,8 +30,7 @@ df.to_csv('fifa_world_cup_finals.csv', index=False)
 # Preview the result
 print(df.head())
 
-!pip install dash
-!pip install plotly
+
 
 import dash
 from dash import dcc, html, Input, Output
